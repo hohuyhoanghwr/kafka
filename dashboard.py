@@ -21,13 +21,24 @@ sensor_topic = app.topic("sensor")
 alert_topic = app.topic("alert")
 
 alert_count_topic = app.topic("alert-count") #Visualizing alerts count over last 5 seconds
+avg_temp_topic = app.topic("avg-temp") #Visualizing average temperature over last 10 seconds
 
-st_metric_temp = st.empty() # Placeholder for temperature metric
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st_metric_temp = st.empty()
+with col2:
+    st_metric_avg_temp = st.empty()
+with col3:
+    st_metric_alert_count = st.empty()
+
+# st_metric_temp = st.empty() # Placeholder for temperature metric
 st_chart = st.empty() # Placeholder for temperature chart
-st_metric_alert_count = st.empty()
+# st_metric_alert_count = st.empty()
+# st_metric_avg_temp = st.empty()
 
 with app.get_consumer() as consumer:
-    consumer.subscribe([sensor_topic.name, alert_topic.name, alert_count_topic.name])
+    consumer.subscribe([sensor_topic.name, alert_topic.name, alert_count_topic.name,avg_temp_topic.name])
     previous_temp = 0
     while True:
         msg = consumer.poll(timeout=1.0)
@@ -46,14 +57,19 @@ with app.get_consumer() as consumer:
             st_chart.line_chart(
                 data={
                     "time": list(timestamp_buffer),
-                    "temperature": list(temperature_buffer)
+                    "temperature °C": list(temperature_buffer)
                 },
                 x="time",
-                y="temperature",
+                y="temperature °C",
                 use_container_width=True,
             )
+            
         elif msg is not None and msg.topic() == alert_count_topic.name:
             alert_count_msg = alert_count_topic.deserialize(msg)
             alert_count = alert_count_msg.value.get('alert_count', 0)
             st_metric_alert_count.metric(label="Alert Count last 5 seconds", value=alert_count)
 
+        elif msg is not None and msg.topic() == avg_temp_topic.name:
+            avg_temp_msg = avg_temp_topic.deserialize(msg)
+            avg_temp = avg_temp_msg.value.get('avg_temp', 0)
+            st_metric_avg_temp.metric(label="Avg. Temp. last 10 seconds", value=f"{avg_temp:.2f} °C")
