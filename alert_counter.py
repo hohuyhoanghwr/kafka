@@ -1,6 +1,5 @@
 import logging
 from quixstreams import Application
-# from quixstreams import TumblingWindow
 from quixstreams.dataframe.windows import Count
 from datetime import timedelta
 
