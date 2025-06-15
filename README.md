@@ -38,21 +38,50 @@ The system is composed of 5 main components:
 ### 1. Set up Kafka (Docker)
 ```bash
 docker compose up -d
+```
 
-
-### 2. Set up Kafka (Docker)
+### 2. Start Consumers  
+*(in separate terminals)*
 ```bash
-docker compose up -d
+python consumer.py       # Transforms + filters alerts
+python alert_counter.py  # Windowed alert count
+python avg_temp.py       # Windowed average temperature
+```
 
-### 3. Start Consumers
-In seperate terminals
-```bash
-python consumer.py          # Transforms + filters alerts
-python alert_counter.py     # Windowed alert count
-python avg_temp.py          # Windowed average temperature
-
-### 4. Start Dashboard
+### 3. Start Dashboard
 ```bash
 streamlit run dashboard.py
+```
 
-## See screenshot files for the snapshot of the dashboard
+✅ *See screenshot files for the snapshot of the dashboard.*
+
+---
+
+## 📊 Kafka Topics Used
+
+| Topic        | Description                                |
+|--------------|--------------------------------------------|
+| `sensor`     | Raw simulated temperature data             |
+| `alert`      | Filtered messages with high temperature    |
+| `alert-count`| Count of alerts in the last 5 seconds      |
+| `avg-temp`   | Average temperature in the last 10 seconds |
+
+---
+
+## 📦 Dependencies
+
+Install via [uv](https://docs.astral.sh/uv/):
+```bash
+uv init
+uv add streamlit quixstreams
+```
+
+Or use `requirements.in` + `requirements.txt`.
+
+---
+
+## 🧠 Design Concepts
+
+- **StreamingDataFrame (Quix)**: enables declarative pipelines for real-time stream transformations.
+- **Windowed Aggregations**: hopping windows for time-based KPIs (e.g. alert counts, temperature averages).
+- **Streamlit Layout**: metrics aligned using `st.columns()` for clarity and real-time updates.
